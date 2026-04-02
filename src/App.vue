@@ -1218,7 +1218,7 @@ section {
   grid-template-columns: repeat(auto-fit, minmax(320px, 350px));
   justify-content: center;
   gap: 1.4rem;
-  margin-bottom: 0;
+  margin: 0 auto;
 }
 
 .projects-container p {
@@ -1677,6 +1677,14 @@ button:focus-visible,
 /* =========================
    Responsive
 ========================= */
+@media (min-width: 2560px) {
+  .intro-image-frame {
+    width: min(600px, 38vw);
+    height: min(82vh, 1100px);
+    max-height: min(82vh, 1100px);
+  }
+}
+
 @media (max-width: 1300px) {
   .projects-container {
     grid-template-columns: repeat(auto-fit, minmax(300px, 340px));
@@ -1850,6 +1858,7 @@ button:focus-visible,
   .projects-container {
     grid-template-columns: 1fr;
     width: min(440px, calc(100% - 2rem));
+    margin: 0 auto;
   }
 
   .skills-section {

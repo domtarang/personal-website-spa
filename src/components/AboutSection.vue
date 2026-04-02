@@ -1,34 +1,105 @@
 <script setup>
+import { computed, ref } from 'vue'
+
+const aboutIndex = ref(0)
+
+const aboutImages = [
+  {
+    src: '/assets/images/cycling-pic-1.jpg',
+    alt: 'Cycling photo of Mark Dominic Tarang',
+  },
+  {
+    src: '/assets/images/cycling-pic-2.jpg',
+    alt: 'Cycling photo of Mark Dominic Tarang',
+  },
+  {
+    src: '/assets/images/formal-attire-pic.jpg',
+    alt: 'Formal portrait of Mark Dominic Tarang',
+  },
+  {
+    src: '/assets/images/beach-pic.jpg',
+    alt: 'Beach photo of Mark Dominic Tarang',
+  },
+  {
+    src: '/assets/images/family-pic.jpg',
+    alt: 'Family photo of Mark Dominic Tarang',
+  },
+]
+
+const aboutTrackStyle = computed(() => ({
+  transform: `translate3d(-${aboutIndex.value * 100}%, 0, 0)`,
+}))
+
+const showSlide = (index) => {
+  aboutIndex.value = Math.max(0, Math.min(index, aboutImages.length - 1))
+}
 </script>
 
 <template>
   <section class="about-section" id="about-section">
     <div class="about">
-      <img src="/assets/images/about.jpg" alt="My Graduation Photo" class="about-image" />
+      <div class="about-media">
+        <div class="about-viewport" aria-live="polite">
+          <div class="about-track" :style="aboutTrackStyle">
+            <div v-for="image in aboutImages" :key="image.src" class="about-slide">
+              <img :src="image.src" :alt="image.alt" class="about-image" />
+            </div>
+          </div>
+        </div>
+
+        <div class="about-carousel-controls" aria-label="About photo controls">
+          <button
+            class="about-nav about-prev"
+            type="button"
+            aria-label="Previous photo"
+            :disabled="aboutIndex === 0"
+            :aria-disabled="String(aboutIndex === 0)"
+            @click="showSlide(aboutIndex - 1)"
+          >
+            <i class="mdi mdi-chevron-left" aria-hidden="true"></i>
+          </button>
+
+          <div class="about-indicators" aria-label="About photo indicators">
+            <button
+              v-for="(image, index) in aboutImages"
+              :key="image.src"
+              :class="['about-indicator', { 'is-active': index === aboutIndex }]"
+              type="button"
+              :aria-label="`Show photo ${index + 1}`"
+              :data-slide="index"
+              :aria-current="String(index === aboutIndex)"
+              @click="showSlide(index)"
+            ></button>
+          </div>
+
+          <button
+            class="about-nav about-next"
+            type="button"
+            aria-label="Next photo"
+            :disabled="aboutIndex === aboutImages.length - 1"
+            :aria-disabled="String(aboutIndex === aboutImages.length - 1)"
+            @click="showSlide(aboutIndex + 1)"
+          >
+            <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
 
       <div class="about-content">
         <p class="about-title">Get to know me!</p>
-
+        <div class="about-tags" aria-label="Personal highlights">
+          <span class="about-tag"><i class="mdi mdi-cake-variant-outline" aria-hidden="true"></i>May 11, 2001</span>
+          <span class="about-tag"><i class="mdi mdi-map-marker-outline" aria-hidden="true"></i>Mendez, Cavite</span>
+          <span class="about-tag"><i class="mdi mdi-bike-fast" aria-hidden="true"></i>Cycling &amp; running</span>
+        </div>
         <p>
-          I’m <span>Mark Dominic Tarang</span>, though most people know me as <span>Dom</span>.
-          At 24 years old, I am currently based in Mendez, Cavite. I earned my
-          <span>Bachelor of Science in Information Technology from De La Salle University – Dasmariñas</span>,
-          specializing in Web Development, and graduated Class of 2024. I was honored to finish as
-          <span>Summa Cum Laude</span> and to be recognized as Rank 5 in the BSIT program.
+          Hello and welcome! I’m <span>Mark Dominic Tarang</span>, though most people call me <span>Dom</span>. I’m from Mendez, Cavite, and I’m glad you’re here taking the time to learn a bit more about me. I’m someone who’s naturally curious, driven, and always eager to keep learning, improving, and building things with purpose.
         </p>
-
         <p>
-          I’m currently a <span>Backend Developer</span> at <span>Petnet Inc.</span>, with more
-          than one year of experience building and maintaining reliable, high-performing, and
-          user-friendly systems. Alongside my backend expertise, I also have hands-on frontend
-          experience, giving me a well-rounded perspective in full-stack development.
+          <span>Java</span> was the first language that gave structure to my curiosity about technology. What started with exploring software and learning how things work gradually led me into programming, and over time, shaped my path as a <span>backend engineer</span> who enjoys building dependable, user-focused applications.
         </p>
-
         <p>
-          Outside of tech, I stay active through cycling, running, and working out. I’m an
-          endurance cyclist and have recently joined several Audax Randonneur Philippines events.
-          I’m also into running and currently training for a marathon, while strength training
-          helps me stay balanced and support my overall performance.
+          Outside of tech, I stay active through <span>cycling, running, and strength training</span>. I’m especially drawn to endurance sports because they reflect the same values I bring to software development: consistency, discipline, resilience, and steady progress. I’ve also joined several <span>Audax Randonneur Philippines</span> events, which continue to strengthen my long-term mindset in both life and career.
         </p>
       </div>
     </div>
@@ -36,73 +107,5 @@
 </template>
 
 <style scoped>
-.about-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  padding: 5rem 0;
-}
-
-.about {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 3.5rem;
-  width: var(--max-width);
-  padding: 2rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius-xl) + 0.25rem);
-  box-shadow: var(--shadow-sm);
-}
-
-.about-title {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 3vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-  color: var(--text);
-  font-weight: 700;
-  margin: 0 0 1rem;
-}
-
-.about-content {
-  text-align: left;
-  margin: 0;
-}
-
-.about-content span {
-  color: var(--primary);
-  font-weight: 700;
-}
-
-.about-image {
-  width: min(360px, 100%);
-  height: 430px;
-  margin: 0;
-  border-radius: 2rem;
-  object-fit: cover;
-  box-shadow: var(--shadow-md);
-}
-
-@media (max-width: 1210px) {
-  .about {
-    flex-direction: column;
-    width: var(--max-width);
-  }
-
-  .about-image {
-    width: min(420px, 100%);
-    height: 340px;
-  }
-}
-
-@media (max-width: 800px) {
-  .about-section {
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
+/* Global styles live in App.vue */
 </style>

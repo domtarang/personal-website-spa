@@ -1,202 +1,183 @@
 <script setup>
-import { ref } from 'vue'
-import ProjectModal from './ProjectModal.vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+
+const unavailableAlertMessage = 'The website is currently unavailable. It will be deployed as soon as possible.'
+
+const isModalOpen = ref(false)
+const modalDescription = ref('')
 
 const projects = [
   {
     title: 'Joson-Perey Clinic',
     subtitle: 'My Academic Capstone Project - Appointment System',
     image: '/assets/images/Joson-Perey Clinic.png',
-    website: '',
+    imageAlt: 'Joson-Perey Clinic',
     description:
       'Joson-Perey Dental Clinic is an appointment scheduling system developed as our academic capstone project. The platform allows patients to easily book, view, and manage their dental appointments. It also features an intuitive admin dashboard for clinic staff to monitor schedules and patient data. Additionally, we integrated APIs such as a payment gateway for appointment fees and an SMS provider for appointment reminders.',
+    websiteUrl: '',
+  },
+  {
+    title: 'Privarase',
+    subtitle: 'My Internship Project - Cybersecurity and Data Privacy Platform',
+    image: '/assets/images/privarase.png',
+    imageAlt: 'Privarase',
+    description:
+      'Privarase is a cybersecurity and data privacy platform designed to help users stay safe online through easy-to-understand articles, guides, and security tips. The website allows readers to explore practical resources across topics such as social media protection, account security, privacy tools, and the latest cybersecurity news. It also features categorized content, newsletter updates, and video guides to make cybersecurity knowledge more accessible and engaging.',
+    websiteUrl: 'https://www.privarase.com/',
   },
 ]
 
-const isModalOpen = ref(false)
-const selectedProjectDescription = ref('')
-
-function openModal(description) {
-  selectedProjectDescription.value = description
+const openModal = (description = '') => {
+  modalDescription.value = description
   isModalOpen.value = true
 }
 
-function closeModal() {
+const closeModal = () => {
   isModalOpen.value = false
 }
 
-function openWebsite(project) {
-  if (!project.website) {
-    alert('The website is currently unavailable. It will be deployed as soon as possible.')
-    return
-  }
-
-  window.open(project.website, '_blank', 'noopener,noreferrer')
+const handleUnavailable = () => {
+  window.alert(unavailableAlertMessage)
 }
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isModalOpen.value) {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
   <section class="projects-section" id="projects-section">
-    <p class="projects-title">Sample Projects</p>
-    <p class="project-intro">
-      Welcome to my projects portfolio. Here you'll find sample projects showcasing my technical
-      skills and I'm currently working on more to expand this collection.
-    </p>
+    <svg class="projects-wave projects-wave--top-left" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="projectsWaveGradientTop" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#2563eb" />
+          <stop offset="55%" stop-color="#4f46e5" />
+          <stop offset="100%" stop-color="#8b5cf6" />
+        </linearGradient>
+        <linearGradient id="projectsWaveGlowGradientTop" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.04" />
+          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
+        </linearGradient>
+      </defs>
+      <path class="projects-wave-back" d="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" fill="url(#projectsWaveGradientTop)">
+        <animate attributeName="d" dur="13s" repeatCount="indefinite"
+          values="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z;
+                  M0 0 H640 C572 0 496 42 404 116 C288 210 176 288 0 334 V0 Z;
+                  M0 0 H640 C548 0 470 26 378 84 C272 150 180 246 0 302 V0 Z;
+                  M0 0 H640 C562 0 486 36 394 104 C286 188 180 274 0 326 V0 Z;
+                  M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" />
+      </path>
+      <path class="projects-wave-front" d="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" fill="url(#projectsWaveGradientTop)">
+        <animate attributeName="d" dur="9s" repeatCount="indefinite"
+          values="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z;
+                  M0 0 H640 C586 0 512 50 418 130 C304 222 180 300 0 350 V0 Z;
+                  M0 0 H640 C562 0 490 34 396 98 C286 182 178 274 0 326 V0 Z;
+                  M0 0 H640 C578 0 506 46 414 120 C300 208 184 292 0 344 V0 Z;
+                  M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" />
+      </path>
+      <path class="projects-wave-glow" d="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" fill="url(#projectsWaveGlowGradientTop)">
+        <animate attributeName="d" dur="10s" repeatCount="indefinite"
+          values="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z;
+                  M0 0 H640 C582 0 508 48 416 126 C304 218 182 296 0 346 V0 Z;
+                  M0 0 H640 C558 0 488 32 396 96 C288 178 178 268 0 322 V0 Z;
+                  M0 0 H640 C574 0 502 42 410 116 C298 202 184 286 0 338 V0 Z;
+                  M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" />
+      </path>
+    </svg>
 
-    <div class="projects-container">
-      <div v-for="project in projects" :key="project.title" class="project-card">
-        <img :src="project.image" :alt="project.title" />
-        <p class="project-title">{{ project.title }}</p>
-        <p class="project-subtitle">{{ project.subtitle }}</p>
+    <svg class="projects-wave projects-wave--bottom-right" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="projectsWaveGradientBottom" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#2563eb" />
+          <stop offset="55%" stop-color="#4f46e5" />
+          <stop offset="100%" stop-color="#8b5cf6" />
+        </linearGradient>
+        <linearGradient id="projectsWaveGlowGradientBottom" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.04" />
+          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
+        </linearGradient>
+      </defs>
+      <path class="projects-wave-back" d="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" fill="url(#projectsWaveGradientBottom)">
+        <animate attributeName="d" dur="13s" repeatCount="indefinite"
+          values="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z;
+                  M0 0 H640 C572 0 496 42 404 116 C288 210 176 288 0 334 V0 Z;
+                  M0 0 H640 C548 0 470 26 378 84 C272 150 180 246 0 302 V0 Z;
+                  M0 0 H640 C562 0 486 36 394 104 C286 188 180 274 0 326 V0 Z;
+                  M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" />
+      </path>
+      <path class="projects-wave-front" d="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" fill="url(#projectsWaveGradientBottom)">
+        <animate attributeName="d" dur="9s" repeatCount="indefinite"
+          values="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z;
+                  M0 0 H640 C586 0 512 50 418 130 C304 222 180 300 0 350 V0 Z;
+                  M0 0 H640 C562 0 490 34 396 98 C286 182 178 274 0 326 V0 Z;
+                  M0 0 H640 C578 0 506 46 414 120 C300 208 184 292 0 344 V0 Z;
+                  M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" />
+      </path>
+      <path class="projects-wave-glow" d="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" fill="url(#projectsWaveGlowGradientBottom)">
+        <animate attributeName="d" dur="10s" repeatCount="indefinite"
+          values="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z;
+                  M0 0 H640 C582 0 508 48 416 126 C304 218 182 296 0 346 V0 Z;
+                  M0 0 H640 C558 0 488 32 396 96 C288 178 178 268 0 322 V0 Z;
+                  M0 0 H640 C574 0 502 42 410 116 C298 202 184 286 0 338 V0 Z;
+                  M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" />
+      </path>
+    </svg>
 
-        <button class="open-website-btn" type="button" @click="openWebsite(project)">
-          Open Website
-        </button>
+    <div class="projects-shell">
+      <div class="projects-header">
+        <p class="projects-kicker">Projects</p>
+        <h2 class="projects-title">Things I’ve built and worked on</h2>
+        <p class="project-intro">
+          Welcome to my projects portfolio. Here you'll find sample projects showcasing my technical skills and I'm currently working on more to expand this collection.
+        </p>
+      </div>
 
-        <button class="learn-more-btn" type="button" @click="openModal(project.description)">
-          Learn More
-        </button>
+      <div class="projects-container">
+        <div
+          v-for="project in projects"
+          :key="project.title"
+          class="project-card"
+          :data-description="project.description"
+        >
+          <img :src="project.image" :alt="project.imageAlt" />
+          <p class="project-title">{{ project.title }}</p>
+          <p class="project-subtitle">{{ project.subtitle }}</p>
+
+          <template v-if="project.websiteUrl">
+            <a class="project-link" :href="project.websiteUrl" target="_blank" rel="noopener noreferrer">
+              <button class="open-website-btn" type="button">Open Website</button>
+            </a>
+          </template>
+          <template v-else>
+            <button class="open-website-btn unavailable-btn" type="button" @click="handleUnavailable">Open Website</button>
+          </template>
+
+          <button class="learn-more-btn" type="button" @click="openModal(project.description)">Learn More</button>
+        </div>
       </div>
     </div>
-
-    <ProjectModal
-      :is-open="isModalOpen"
-      :description="selectedProjectDescription"
-      @close="closeModal"
-    />
   </section>
+
+  <div id="modal" :class="['modal', { 'is-open': isModalOpen }]" :aria-hidden="String(!isModalOpen)" @click.self="closeModal">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close" aria-label="Close modal" @click="closeModal">&times;</button>
+      <p id="modal-description">{{ modalDescription }}</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.projects-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, transparent 0%, rgba(59, 130, 246, 0.04) 100%);
-  padding: 2rem 0 5rem;
-}
-
-.projects-title {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 3vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-  color: var(--text);
-  font-weight: 700;
-  margin: 2rem 0 1rem;
-}
-
-.project-intro {
-  width: min(720px, calc(100% - 2rem));
-  text-align: center;
-  margin: 0 0 2.75rem;
-  font-size: 1.02rem;
-}
-
-.projects-container {
-  width: var(--max-width);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.4rem;
-  margin-bottom: 0;
-}
-
-.projects-container p {
-  margin: 0;
-}
-
-.project-card {
-  background: rgba(255, 255, 255, 0.92);
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-direction: column;
-  gap: 0.9rem;
-  text-align: left;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 1rem 1rem 1.25rem;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-
-.project-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
-  border-color: rgba(37, 99, 235, 0.18);
-}
-
-.project-card img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 1.15rem;
-}
-
-.project-title {
-  font-family: var(--font-heading);
-  font-size: 1.35rem;
-  color: var(--text);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  margin-top: 0.35rem;
-}
-
-.project-subtitle {
-  font-size: 0.98rem;
-  text-align: left;
-  color: var(--text-muted);
-  min-height: 3rem;
-}
-
-.learn-more-btn,
-.open-website-btn {
-  width: 100%;
-  font-size: 0.98rem;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 700;
-  text-align: center;
-  padding: 0.85rem 1rem;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, background-color 0.25s ease;
-}
-
-.learn-more-btn {
-  margin-bottom: 0;
-  background: rgba(15, 23, 42, 0.06);
-  color: var(--text);
-}
-
-.open-website-btn {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #ffffff;
-  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
-}
-
-.learn-more-btn:hover,
-.open-website-btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.02);
-  box-shadow: var(--shadow-md);
-}
-
-@media (max-width: 1300px) {
-  .projects-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 800px) {
-  .projects-container {
-    grid-template-columns: 1fr;
-  }
-
-  .projects-section {
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
+/* Global styles live in App.vue */
 </style>

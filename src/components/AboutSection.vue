@@ -96,7 +96,7 @@ const showSlide = (index) => {
           Hello and welcome! I’m <span>Mark Dominic Tarang</span>, though most people call me <span>Dom</span>. I’m from Mendez, Cavite, and I’m glad you’re here taking the time to learn a bit more about me. I’m someone who’s naturally curious, driven, and always eager to keep learning, improving, and building things with purpose.
         </p>
         <p>
-          <span>Java</span> was the first language that gave structure to my curiosity about technology. What started with exploring software and learning how things work gradually led me into programming, and over time, shaped my path as a <span>backend engineer</span> who enjoys building dependable, user-focused applications.
+          <span>Java</span> was the first language that gave structure to my curiosity about technology. What started with exploring software and learning how things work gradually led me into programming, and over time, shaped my path as a <span>software engineer</span> who enjoys building dependable, user-focused applications.
         </p>
         <p>
           Outside of tech, I stay active through <span>cycling, running, and strength training</span>. I’m especially drawn to endurance sports because they reflect the same values I bring to software development: consistency, discipline, resilience, and steady progress. I’ve also joined several <span>Audax Randonneur Philippines</span> events, which continue to strengthen my long-term mindset in both life and career.

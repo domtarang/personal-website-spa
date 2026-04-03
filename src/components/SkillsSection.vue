@@ -28,7 +28,7 @@ const skills = [
     index: '02',
     icon: 'mdi mdi-server-outline',
     title: 'Back-end',
-    values: ['Java', 'Spring Boot', 'Node.js', 'Express.js', 'NestJS', 'TypeScript'],
+    values: ['Java', 'Spring Boot', 'Node.js', 'Express.js', 'NestJS', 'TypeScript', 'Laravel'],
   },
   {
     index: '03',

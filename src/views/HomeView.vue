@@ -1,13 +1,13 @@
 <script setup>
-import HeaderSection from '../components/HeaderSection.vue'
-import HeroSection from '../components/HeroSection.vue'
-import AboutSection from '../components/AboutSection.vue'
-import SkillsSection from '../components/SkillsSection.vue'
-import ProjectsSection from '../components/ProjectsSection.vue'
-import ExperienceSection from '../components/ExperienceSection.vue'
-import EducationSection from '@/components/EducationSection.vue'
-import ContactSection from '../components/ContactSection.vue'
-import FooterSection from '../components/FooterSection.vue'
+import HeaderSection from '@/components/home/HeaderSection.vue'
+import HeroSection from '@/components/home/HeroSection.vue'
+import AboutSection from '@/components/home/AboutSection.vue'
+import SkillsSection from '@/components/home/SkillsSection.vue'
+import ProjectsSection from '@/components/home/ProjectsSection.vue'
+import ExperienceSection from '@/components/home/ExperienceSection.vue'
+import EducationSection from '@/components/home/EducationSection.vue'
+import ContactSection from '@/components/home/ContactSection.vue'
+import FooterSection from '@/components/home/FooterSection.vue'
 </script>
 
 <template>

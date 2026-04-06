@@ -1,36 +1,21 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import hero1 from '@/assets/images/hero/hero-1.png'
-import hero2 from '@/assets/images/hero/hero-2.png'
-import hero3 from '@/assets/images/hero/hero-3.png'
-import hero4 from '@/assets/images/hero/hero-4.png'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useHeroSectionStore } from '@/stores/heroSection'
 
 const HERO_ROTATION_INTERVAL = 3000
 const HERO_CAPTURE_DURATION = 520
 
+const heroSectionStore = useHeroSectionStore()
 const heroImageFrame = ref(null)
 const heroIndex = ref(0)
 const heroTimerId = ref(null)
 const captureTimeoutId = ref(null)
 
-const heroImages = [
-  {
-    src: hero1,
-    alt: 'Hero portrait of Mark Dominic Tarang',
-  },
-  {
-    src: hero2,
-    alt: 'Alternate hero portrait of Mark Dominic Tarang',
-  },
-  {
-    src: hero3,
-    alt: 'Alternate hero portrait of Mark Dominic Tarang',
-  },
-  {
-    src: hero4,
-    alt: 'Alternate hero portrait of Mark Dominic Tarang',
-  },
-]
+const heroImages = computed(() => heroSectionStore.sortedHeroImages)
+const heroButtons = computed(() => heroSectionStore.sortedHeroButtons)
+const heroSection = computed(() => heroSectionStore.heroSection)
+
+const shouldOpenInNewTab = (link = '') => /^https?:\/\//i.test(String(link).trim())
 
 const clearCaptureFlash = () => {
   heroImageFrame.value?.classList.remove('is-capturing')
@@ -48,29 +33,30 @@ const stop = () => {
   }
 }
 
-const start = () => {
-  if (heroImages.length < 2) {
-    return
-  }
-
-  stop()
-  heroTimerId.value = window.setInterval(advance, HERO_ROTATION_INTERVAL)
-}
-
 const advance = () => {
-  if (!heroImageFrame.value || heroImages.length < 2) {
+  if (!heroImageFrame.value || heroImages.value.length < 2) {
     return
   }
 
   clearCaptureFlash()
   void heroImageFrame.value.offsetWidth
   heroImageFrame.value.classList.add('is-capturing')
-  heroIndex.value = (heroIndex.value + 1) % heroImages.length
+  heroIndex.value = (heroIndex.value + 1) % heroImages.value.length
 
   captureTimeoutId.value = window.setTimeout(() => {
     clearCaptureFlash()
     captureTimeoutId.value = null
   }, HERO_CAPTURE_DURATION)
+}
+
+const start = () => {
+  if (heroImages.value.length < 2) {
+    stop()
+    return
+  }
+
+  stop()
+  heroTimerId.value = window.setInterval(advance, HERO_ROTATION_INTERVAL)
 }
 
 const handleVisibilityChange = () => {
@@ -83,16 +69,33 @@ const handleVisibilityChange = () => {
 }
 
 const preloadImages = () => {
-  heroImages.forEach((image) => {
+  heroImages.value.forEach((image) => {
+    if (!image?.url) {
+      return
+    }
+
     const preloadImage = new Image()
-    preloadImage.src = image.src
+    preloadImage.src = image.url
   })
 }
 
-onMounted(() => {
-  preloadImages()
-  start()
+watch(
+  heroImages,
+  () => {
+    heroIndex.value = 0
+    preloadImages()
+    start()
+  },
+  { deep: true },
+)
+
+onMounted(async () => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  try {
+    await heroSectionStore.fetch()
+  } catch {
+  }
 })
 
 onBeforeUnmount(() => {
@@ -145,25 +148,20 @@ onBeforeUnmount(() => {
     <div class="hero-content">
       <div class="intro">
         <p class="intro-name">Hi, I'm <span>Mark Dominic Tarang</span></p>
-        <p class="intro-position"><span>Backend Developer</span> at <span>Petnet Inc.</span></p>
-        <p>
-          Backend Developer with hands-on frontend experience, skilled in building
-          and maintaining reliable, high-performing, and user-friendly systems.
-        </p>
-        <p>Feel free to explore my website to learn more about me and get in touch!</p>
+        <p class="intro-position"><span>{{ heroSection.jobTitle }}</span> at <span>{{ heroSection.company }}</span></p>
+        <p>{{ heroSection.description }}</p>
+        <p>{{ heroSection.supportingText }}</p>
 
-        <div class="intro-socials">
-          <a href="mailto:dominictarang@gmail.com" aria-label="Email">
-            <i class="intro-social-icon mdi mdi-email-outline" aria-hidden="true"></i>
-          </a>
-          <a href="tel:+639369407862" aria-label="Phone">
-            <i class="intro-social-icon mdi mdi-phone-outline" aria-hidden="true"></i>
-          </a>
-          <a href="https://www.linkedin.com/in/mark-dominic-tarang-3b6031328" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <i class="intro-social-icon mdi mdi-linkedin" aria-hidden="true"></i>
-          </a>
-          <a href="https://www.facebook.com/mark.dominic.tarang/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-            <i class="intro-social-icon mdi mdi-facebook" aria-hidden="true"></i>
+        <div v-if="heroButtons.length" class="intro-socials">
+          <a
+            v-for="(button, index) in heroButtons"
+            :key="button.id || `${button.icon}-${index}`"
+            :href="button.link"
+            :target="shouldOpenInNewTab(button.link) ? '_blank' : undefined"
+            :rel="shouldOpenInNewTab(button.link) ? 'noopener noreferrer' : undefined"
+            :aria-label="button.icon || `Hero action ${index + 1}`"
+          >
+            <i :class="['intro-social-icon', 'mdi', button.icon]" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -172,8 +170,8 @@ onBeforeUnmount(() => {
         <div class="intro-image-stack">
           <img
             v-for="(image, index) in heroImages"
-            :key="image.src"
-            :src="image.src"
+            :key="image.id || image.url || index"
+            :src="image.url"
             :alt="index === heroIndex ? image.alt : ''"
             :class="['intro-image', { 'is-active': index === heroIndex }]"
             :data-hero-alt="image.alt"

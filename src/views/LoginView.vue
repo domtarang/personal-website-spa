@@ -1,13 +1,66 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 
 const password = ref('')
 const showPassword = ref(false)
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+const infoMessage = ref('')
 
 const inputType = computed(() => (showPassword.value ? 'text' : 'password'))
+const feedbackMeta = computed(() => {
+  if (errorMessage.value) {
+    return {
+      icon: 'mdi-alert-circle',
+      title: 'Login failed',
+      typeClass: 'app-notice-error',
+      message: errorMessage.value,
+    }
+  }
 
-const handleSubmit = () => {
-  console.log('Login submitted')
+  if (infoMessage.value) {
+    return {
+      icon: 'mdi-check-circle',
+      title: 'Success',
+      typeClass: 'app-notice-success',
+      message: infoMessage.value,
+    }
+  }
+
+  return null
+})
+
+onMounted(() => {
+  const notice = window.sessionStorage.getItem('personal-website-auth-notice') || ''
+
+  if (notice) {
+    infoMessage.value = notice
+    window.sessionStorage.removeItem('personal-website-auth-notice')
+  }
+})
+
+const handleSubmit = async () => {
+  isSubmitting.value = true
+  errorMessage.value = ''
+
+  try {
+    await authStore.login(password.value)
+    const redirectTarget = typeof route.query.redirect === 'string' && route.query.redirect
+      ? route.query.redirect
+      : '/maintenance'
+
+    await router.replace(redirectTarget)
+  } catch (error) {
+    errorMessage.value = error.message || 'Unable to login.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -79,19 +132,20 @@ const handleSubmit = () => {
     </div>
 
     <section class="login-shell">
-      <form class="login-card" @submit.prevent="handleSubmit">
+      <form class="login-card app-surface" @submit.prevent="handleSubmit">
         <div class="login-copy">
           <p class="login-kicker">Private Access</p>
           <h1>Login</h1>
-          <p>Enter your password to continue.</p>
+          <p>Enter your maintenance password to continue.</p>
         </div>
 
-        <label class="login-field" for="password">Password</label>
+        <label class="app-input-label" for="password">Password</label>
         <div class="password-input-wrap">
           <input
             id="password"
             v-model="password"
             :type="inputType"
+            class="app-input"
             placeholder="Enter password"
             autocomplete="current-password"
             required
@@ -108,7 +162,28 @@ const handleSubmit = () => {
           </button>
         </div>
 
-        <button class="login-button" type="submit">Login</button>
+        <div
+          v-if="feedbackMeta"
+          :class="['app-notice', feedbackMeta.typeClass, 'login-notice']"
+          role="status"
+          :aria-live="errorMessage ? 'assertive' : 'polite'"
+        >
+          <span class="app-notice-icon-wrap" aria-hidden="true">
+            <i :class="['mdi', feedbackMeta.icon, 'app-notice-icon']"></i>
+          </span>
+          <div class="app-notice-copy">
+            <strong class="app-notice-title">{{ feedbackMeta.title }}</strong>
+            <p class="app-notice-message">{{ feedbackMeta.message }}</p>
+          </div>
+        </div>
+
+        <button class="app-primary-button login-button" type="submit" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Signing in...' : 'Login' }}
+        </button>
+
+        <a class="app-secondary-button login-secondary-link" href="/" target="_blank" rel="noopener noreferrer">
+          Go to site
+        </a>
       </form>
     </section>
   </main>
@@ -184,11 +259,7 @@ const handleSubmit = () => {
 .login-card {
   width: min(100%, 440px);
   padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 1.75rem;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
 }
 
 .login-copy {
@@ -218,143 +289,35 @@ const handleSubmit = () => {
   margin: 0.85rem 0 0;
 }
 
-.login-field {
-  display: inline-block;
-  margin-bottom: 0.6rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text);
+.login-notice {
+  margin: 1rem 0;
 }
 
-.password-input-wrap {
-  position: relative;
-}
-
-.password-input-wrap input {
+.login-button,
+.login-secondary-link {
   width: 100%;
-  padding: 1rem 6.1rem 1rem 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.94);
-  font: inherit;
-  color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.password-input-wrap input:focus {
-  border-color: rgba(37, 99, 235, 0.52);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-  outline: none;
-}
-
-.password-toggle {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.32rem;
-  padding: 0.3rem 0.55rem;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted);
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 600;
-  transform: translateY(-50%);
-}
-
-.password-toggle:hover {
-  color: var(--primary);
-}
-
-.password-toggle i {
-  font-size: 1rem;
 }
 
 .login-button {
-  width: 100%;
-  margin-top: 1rem;
-  padding: 0.95rem 1rem;
-  border: none;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #ffffff;
-  font: inherit;
-  font-weight: 700;
-  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.24);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  margin-top: 1.15rem;
 }
 
-.login-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.28);
-  filter: brightness(1.03);
-}
-
-@keyframes loginWaveDriftFront {
-  0% {
-    transform: translateX(-1.2%) translateY(0.35%);
-  }
-
-  50% {
-    transform: translateX(1.55%) translateY(-1.8%);
-  }
-
-  100% {
-    transform: translateX(-0.8%) translateY(0.85%);
-  }
+.login-secondary-link {
+  margin-top: 0.85rem;
 }
 
 @keyframes loginWaveDriftBack {
-  0% {
-    transform: translateX(1.05%) translateY(0.9%);
-  }
+  from { transform: translateY(0); }
+  to { transform: translateY(12px); }
+}
 
-  50% {
-    transform: translateX(-1.05%) translateY(-1.35%);
-  }
-
-  100% {
-    transform: translateX(0.7%) translateY(0.2%);
-  }
+@keyframes loginWaveDriftFront {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
 }
 
 @keyframes loginWaveGlow {
-  0% {
-    transform: translateX(-0.45%) translateY(-0.35%);
-    opacity: 0.13;
-  }
-
-  50% {
-    transform: translateX(0.95%) translateY(-1.55%);
-    opacity: 0.26;
-  }
-
-  100% {
-    transform: translateX(-0.7%) translateY(0.3%);
-    opacity: 0.16;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .login-wave-back,
-  .login-wave-front,
-  .login-wave-glow {
-    animation: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .login-card {
-    padding: 1.5rem;
-  }
-
-  .password-input-wrap input {
-    padding-right: 5.6rem;
-  }
+  from { transform: translateY(0); opacity: 0.16; }
+  to { transform: translateY(10px); opacity: 0.26; }
 }
 </style>

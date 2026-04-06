@@ -36,3 +36,30 @@ npm run dev
 ```sh
 npm run build
 ```
+
+
+## API base URL configuration
+
+This project uses `VITE_API_BASE_URL` to decide where API requests go.
+
+### Local development
+
+`/.env.development` is set to:
+
+```env
+VITE_API_BASE_URL=/api
+```
+
+That works with the Vite proxy in `vite.config.js`, which forwards `/api/*` requests to `http://localhost:3000` while developing locally.
+
+### Production
+
+`/.env.production` is set to:
+
+```env
+VITE_API_BASE_URL=https://api.domtarang.com/api
+```
+
+So when you build for production, the SPA will call your deployed API subdomain directly.
+
+If you deploy the API somewhere else later, update `VITE_API_BASE_URL` before running `npm run build`.

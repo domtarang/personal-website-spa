@@ -1,16 +1,18 @@
 <script setup>
-import collegeGraduation from '@/assets/images/education/college-graduation.jpg'
-import shsGraduation from '@/assets/images/education/shs-graduation.png'
+import { computed } from 'vue'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
 
-const educationEntries = [
+const portfolioContentStore = usePortfolioContentStore()
+
+const educationEntries = computed(() => [
   {
     level: 'College',
     degree: 'BS in Information Technology',
     school: 'De La Salle University - Dasmariñas',
     batch: 'Class of 2024',
     mediaClass: 'education-media education-media--portrait',
-    image: collegeGraduation,
-    imageAlt: 'College graduation photo of Mark Dominic Tarang',
+    image: portfolioContentStore.educationSection.collegePhoto.url,
+    imageAlt: portfolioContentStore.educationSection.collegePhoto.alt,
     reverse: false,
     highlights: [
       {
@@ -33,8 +35,8 @@ const educationEntries = [
     school: 'Mendez-Nuñez Montessori',
     batch: 'Batch 2020',
     mediaClass: 'education-media education-media--landscape education-media--shs',
-    image: shsGraduation,
-    imageAlt: 'Senior high school photo of Mark Dominic Tarang',
+    image: portfolioContentStore.educationSection.seniorHighPhoto.url,
+    imageAlt: portfolioContentStore.educationSection.seniorHighPhoto.alt,
     reverse: true,
     highlights: [
       {
@@ -51,12 +53,12 @@ const educationEntries = [
       },
     ],
   },
-]
+])
 </script>
 
 <template>
   <section class="education-section" id="education-section">
-    <svg class="projects-wave projects-wave--education-top-right" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
+    <svg class="education-wave education-wave--education-top-right" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="educationProjectsWaveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stop-color="#2563eb" />
@@ -69,7 +71,7 @@ const educationEntries = [
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
         </linearGradient>
       </defs>
-      <path class="projects-wave-back" d="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" fill="url(#educationProjectsWaveGradient)">
+      <path class="education-wave-back" d="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" fill="url(#educationProjectsWaveGradient)">
         <animate attributeName="d" dur="13s" repeatCount="indefinite"
           values="M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z;
                   M0 0 H640 C572 0 496 42 404 116 C288 210 176 288 0 334 V0 Z;
@@ -77,7 +79,7 @@ const educationEntries = [
                   M0 0 H640 C562 0 486 36 394 104 C286 188 180 274 0 326 V0 Z;
                   M0 0 H640 C556 0 484 30 402 90 C300 166 194 262 0 314 V0 Z" />
       </path>
-      <path class="projects-wave-front" d="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" fill="url(#educationProjectsWaveGradient)">
+      <path class="education-wave-front" d="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" fill="url(#educationProjectsWaveGradient)">
         <animate attributeName="d" dur="9s" repeatCount="indefinite"
           values="M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z;
                   M0 0 H640 C586 0 512 50 418 130 C304 222 180 300 0 350 V0 Z;
@@ -85,7 +87,7 @@ const educationEntries = [
                   M0 0 H640 C578 0 506 46 414 120 C300 208 184 292 0 344 V0 Z;
                   M0 0 H640 C572 0 502 40 412 110 C300 196 186 286 0 340 V0 Z" />
       </path>
-      <path class="projects-wave-glow" d="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" fill="url(#educationProjectsWaveGlowGradient)">
+      <path class="education-wave-glow" d="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z" fill="url(#educationProjectsWaveGlowGradient)">
         <animate attributeName="d" dur="10s" repeatCount="indefinite"
           values="M0 0 H640 C566 0 494 36 406 102 C296 184 184 274 0 330 V0 Z;
                   M0 0 H640 C582 0 508 48 416 126 C304 218 182 296 0 346 V0 Z;
@@ -163,7 +165,7 @@ const educationEntries = [
   padding: 5rem 0;
 }
 
-.projects-wave {
+.education-wave {
   position: absolute;
   z-index: 0;
   display: block;
@@ -174,7 +176,7 @@ const educationEntries = [
   pointer-events: none;
 }
 
-.projects-wave--education-top-right {
+.education-wave--education-top-right {
   top: -1px;
   right: calc((100vw - 100%) / -2 - 1px);
   width: clamp(260px, 30vw, 560px);
@@ -183,19 +185,19 @@ const educationEntries = [
   transform-origin: center center;
 }
 
-.projects-wave .projects-wave-back {
+.education-wave .education-wave-back {
   opacity: 0.18;
   transform-origin: center;
   animation: projectsWaveFloatBack 13s ease-in-out infinite alternate;
 }
 
-.projects-wave .projects-wave-front {
+.education-wave .education-wave-front {
   opacity: 0.92;
   transform-origin: center;
   animation: projectsWaveFloatFront 9s ease-in-out infinite alternate;
 }
 
-.projects-wave .projects-wave-glow {
+.education-wave .education-wave-glow {
   opacity: 0.16;
   mix-blend-mode: screen;
   transform-origin: center;
@@ -422,9 +424,9 @@ const educationEntries = [
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .projects-wave .projects-wave-back,
-  .projects-wave .projects-wave-front,
-  .projects-wave .projects-wave-glow {
+  .education-wave .education-wave-back,
+  .education-wave .education-wave-front,
+  .education-wave .education-wave-glow {
     animation: none;
   }
 }

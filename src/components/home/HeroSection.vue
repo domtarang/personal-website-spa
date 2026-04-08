@@ -1,21 +1,20 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useHeroSectionStore } from '@/stores/heroSection'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
+import { shouldOpenInNewTab } from '@/utils/portfolioContent'
 
 const HERO_ROTATION_INTERVAL = 3000
 const HERO_CAPTURE_DURATION = 520
 
-const heroSectionStore = useHeroSectionStore()
+const portfolioContentStore = usePortfolioContentStore()
 const heroImageFrame = ref(null)
 const heroIndex = ref(0)
 const heroTimerId = ref(null)
 const captureTimeoutId = ref(null)
 
-const heroImages = computed(() => heroSectionStore.sortedHeroImages)
-const heroButtons = computed(() => heroSectionStore.sortedHeroButtons)
-const heroSection = computed(() => heroSectionStore.heroSection)
-
-const shouldOpenInNewTab = (link = '') => /^https?:\/\//i.test(String(link).trim())
+const heroImages = computed(() => portfolioContentStore.sortedHeroImages)
+const heroButtons = computed(() => portfolioContentStore.sortedHeroButtons)
+const heroSection = computed(() => portfolioContentStore.heroSection)
 
 const clearCaptureFlash = () => {
   heroImageFrame.value?.classList.remove('is-capturing')
@@ -89,13 +88,10 @@ watch(
   { deep: true },
 )
 
-onMounted(async () => {
+onMounted(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
-
-  try {
-    await heroSectionStore.fetch()
-  } catch {
-  }
+  preloadImages()
+  start()
 })
 
 onBeforeUnmount(() => {

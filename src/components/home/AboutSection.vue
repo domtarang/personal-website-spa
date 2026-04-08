@@ -1,43 +1,31 @@
 <script setup>
-import { computed, ref } from 'vue'
-import cycling1 from '@/assets/images/about/cycling-1.jpg'
-import cycling2 from '@/assets/images/about/cycling-2.jpg'
-import formalAttire from '@/assets/images/about/formal-attire.jpg'
-import beach from '@/assets/images/about/beach.jpg'
-import family from '@/assets/images/about/family.jpg'
+import { computed, ref, watch } from 'vue'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
 
+const portfolioContentStore = usePortfolioContentStore()
 const aboutIndex = ref(0)
 
-const aboutImages = [
-  {
-    src: cycling1,
-    alt: 'Cycling photo of Mark Dominic Tarang',
-  },
-  {
-    src: cycling2,
-    alt: 'Cycling photo of Mark Dominic Tarang',
-  },
-  {
-    src: formalAttire,
-    alt: 'Formal portrait of Mark Dominic Tarang',
-  },
-  {
-    src: beach,
-    alt: 'Beach photo of Mark Dominic Tarang',
-  },
-  {
-    src: family,
-    alt: 'Family photo of Mark Dominic Tarang',
-  },
-]
+const aboutImages = computed(() => portfolioContentStore.aboutImages)
+const aboutParagraphs = computed(() => portfolioContentStore.aboutSection.paragraphs || [])
 
 const aboutTrackStyle = computed(() => ({
   transform: `translate3d(-${aboutIndex.value * 100}%, 0, 0)`,
 }))
 
 const showSlide = (index) => {
-  aboutIndex.value = Math.max(0, Math.min(index, aboutImages.length - 1))
+  aboutIndex.value = Math.max(0, Math.min(index, aboutImages.value.length - 1))
 }
+
+watch(aboutImages, (images) => {
+  if (!images.length) {
+    aboutIndex.value = 0
+    return
+  }
+
+  if (aboutIndex.value > images.length - 1) {
+    aboutIndex.value = 0
+  }
+})
 </script>
 
 <template>
@@ -46,13 +34,13 @@ const showSlide = (index) => {
       <div class="about-media">
         <div class="about-viewport" aria-live="polite">
           <div class="about-track" :style="aboutTrackStyle">
-            <div v-for="image in aboutImages" :key="image.src" class="about-slide">
-              <img :src="image.src" :alt="image.alt" class="about-image" />
+            <div v-for="image in aboutImages" :key="image.id || image.url" class="about-slide">
+              <img :src="image.url" :alt="image.alt" class="about-image" />
             </div>
           </div>
         </div>
 
-        <div class="about-carousel-controls" aria-label="About photo controls">
+        <div v-if="aboutImages.length" class="about-carousel-controls" aria-label="About photo controls">
           <button
             class="about-nav about-prev"
             type="button"
@@ -67,7 +55,7 @@ const showSlide = (index) => {
           <div class="about-indicators" aria-label="About photo indicators">
             <button
               v-for="(image, index) in aboutImages"
-              :key="image.src"
+              :key="image.id || image.url || index"
               :class="['about-indicator', { 'is-active': index === aboutIndex }]"
               type="button"
               :aria-label="`Show photo ${index + 1}`"
@@ -97,14 +85,8 @@ const showSlide = (index) => {
           <span class="about-tag"><i class="mdi mdi-map-marker-outline" aria-hidden="true"></i>Mendez, Cavite</span>
           <span class="about-tag"><i class="mdi mdi-bike-fast" aria-hidden="true"></i>Cycling &amp; running</span>
         </div>
-        <p>
-          Hello and welcome! I’m <span>Mark Dominic Tarang</span>, though most people call me <span>Dom</span>. I’m from Mendez, Cavite, and I’m glad you’re here taking the time to learn a bit more about me. I’m someone who’s naturally curious, driven, and always eager to keep learning, improving, and building things with purpose.
-        </p>
-        <p>
-          <span>Java</span> was the first language that gave structure to my curiosity about technology. What started with exploring software and learning how things work gradually led me into programming, and over time, shaped my path as a <span>software engineer</span> who enjoys building dependable, user-focused applications.
-        </p>
-        <p>
-          Outside of tech, I stay active through <span>cycling, running, and strength training</span>. I’m especially drawn to endurance sports because they reflect the same values I bring to software development: consistency, discipline, resilience, and steady progress. I’ve also joined several <span>Audax Randonneur Philippines</span> events, which continue to strengthen my long-term mindset in both life and career.
+        <p v-for="(paragraph, index) in aboutParagraphs" :key="`about-paragraph-${index}`">
+          {{ paragraph }}
         </p>
       </div>
     </div>

@@ -256,10 +256,16 @@ textarea:focus-visible,
 }
 
 .app-danger-button {
-  padding: 0.84rem 1.15rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
   border: 1px solid rgba(239, 68, 68, 0.18);
   background: rgba(254, 242, 242, 0.92);
-  color: #b91c1c;
+  color: #dc2626;
+}
+
+.app-danger-button:hover:not(:disabled) {
+  background: rgba(254, 226, 226, 0.98);
 }
 
 .app-icon-button {

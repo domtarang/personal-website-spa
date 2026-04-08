@@ -1,60 +1,11 @@
 <script setup>
-const certifications = [
-  {
-    title: 'Udemy: The Complete 2024 Web Development Bootcamp',
-    href: 'https://udemy-certificate.s3.amazonaws.com/image/UC-b3143bd2-ac9d-45d1-8990-aeb63455583f.jpg',
-    date: 'July 31, 2024',
-  },
-  {
-    title: 'Udemy: Laravel From Scratch',
-    href: 'https://udemy-certificate.s3.amazonaws.com/image/UC-0ad25400-4584-4715-9dc5-731ba4bb2b24.jpg',
-    date: 'November 17, 2024',
-  },
-  {
-    title: 'Udemy: Vue 3 in Action',
-    href: 'https://udemy-certificate.s3.amazonaws.com/image/UC-57f7dbb6-82a2-4622-8c8e-0551806f690f.jpg',
-    date: 'November 25, 2024',
-  },
-]
+import { computed } from 'vue'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
 
-const skills = [
-  {
-    index: '01',
-    icon: 'mdi mdi-monitor-cellphone-star',
-    title: 'Front-end',
-    values: ['Vue.js', 'React', 'TypeScript', 'JavaScript', 'Vuetify', 'MUI', 'Tailwind CSS', 'CSS', 'HTML'],
-  },
-  {
-    index: '02',
-    icon: 'mdi mdi-server-outline',
-    title: 'Back-end',
-    values: ['Java', 'Spring Boot', 'Node.js', 'Express.js', 'NestJS', 'TypeScript', 'Laravel'],
-  },
-  {
-    index: '03',
-    icon: 'mdi mdi-cloud-outline',
-    title: 'DevOps',
-    values: ['Git', 'GitHub', 'GitLab', 'Docker', 'Kubernetes', 'Render', 'Hostinger'],
-  },
-  {
-    index: '04',
-    icon: 'mdi mdi-flask-outline',
-    title: 'Testing',
-    values: ['Vitest', 'Playwright', 'Postman', 'Burp Suite'],
-  },
-  {
-    index: '05',
-    icon: 'mdi mdi-palette-outline',
-    title: 'Design',
-    values: ['Figma', 'Whimsical', 'Draw.io', 'Adobe Photoshop', 'Adobe Illustrator', 'Adobe Premiere Pro'],
-  },
-  {
-    index: '06',
-    icon: 'mdi mdi-database-outline',
-    title: 'Data',
-    values: ['SQL', 'PostgreSQL'],
-  },
-]
+const portfolioContentStore = usePortfolioContentStore()
+
+const certifications = computed(() => portfolioContentStore.certifications)
+const skillCategories = computed(() => portfolioContentStore.skillCategories)
 </script>
 
 <template>
@@ -70,7 +21,7 @@ const skills = [
         <div class="certifications-block">
           <h3 class="certifications-title">Certifications</h3>
           <div class="certification-grid">
-            <article v-for="certification in certifications" :key="certification.title" class="certification-card">
+            <article v-for="certification in certifications" :key="certification.id || certification.title" class="certification-card">
               <span class="certification-marker" aria-hidden="true">•</span>
               <h4 class="certification-course">
                 <a class="certification-link" :href="certification.href" target="_blank" rel="noopener noreferrer">{{ certification.title }}</a>
@@ -82,17 +33,13 @@ const skills = [
       </div>
 
       <div class="skills-list" aria-label="Skills list">
-        <article v-for="skill in skills" :key="skill.index" class="skill-row">
+        <article v-for="(skill, index) in skillCategories" :key="skill.id || skill.name" class="skill-row">
           <div class="skill-label">
-            <span class="skill-index">{{ skill.index }}</span>
-            <i :class="['skill-icon', skill.icon]" aria-hidden="true"></i>
-            <h3 class="skill-title">{{ skill.title }}</h3>
+            <span class="skill-index">{{ String(index + 1).padStart(2, '0') }}</span>
+            <i :class="['skill-icon', 'mdi', skill.mdi]" aria-hidden="true"></i>
+            <h3 class="skill-title">{{ skill.name }}</h3>
           </div>
-          <p class="skill-values">
-            <template v-for="(value, index) in skill.values" :key="`${skill.index}-${value}`">
-              {{ value }}<span v-if="index < skill.values.length - 1"> · </span>
-            </template>
-          </p>
+          <p class="skill-values">{{ skill.content }}</p>
         </article>
       </div>
     </div>

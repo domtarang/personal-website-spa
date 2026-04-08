@@ -1,28 +1,20 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MaintenanceSidebar from '@/components/maintenance/MaintenanceSidebar.vue'
 import MaintenanceToolbar from '@/components/maintenance/MaintenanceToolbar.vue'
 import MaintenanceFeedbackBanner from '@/components/maintenance/MaintenanceFeedbackBanner.vue'
 import PasswordResetModal from '@/components/maintenance/PasswordResetModal.vue'
-import SectionInProgress from '@/components/maintenance/SectionInProgress.vue'
-import HeroSectionForm from '@/components/maintenance/hero/HeroSectionForm.vue'
+import PortfolioContentForm from '@/components/maintenance/PortfolioContentForm.vue'
 import { maintenanceSections } from '@/constants/maintenanceSections'
 import { useTimedNotice } from '@/composables/useTimedNotice'
 import { useAuthStore } from '@/stores/auth'
-import { useHeroSectionStore } from '@/stores/heroSection'
-import {
-  cloneHeroSection,
-  createEmptyHeroSection,
-  createHeroButtonDraft,
-  createHeroImageDraft,
-  reorderItems,
-  syncDisplayOrder,
-} from '@/utils/heroSection'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
+import { clonePortfolioContent, createEmptyPortfolioContent } from '@/utils/portfolioContent'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const heroSectionStore = useHeroSectionStore()
+const portfolioContentStore = usePortfolioContentStore()
 
 const selectedSection = ref('hero')
 const loading = ref(true)
@@ -30,13 +22,9 @@ const saving = ref(false)
 const isPasswordModalOpen = ref(false)
 const resettingPassword = ref(false)
 const passwordError = ref('')
-const movingHeroButtonId = ref('')
-const movingHeroImageId = ref('')
-const moveHighlightTimers = {
-  button: null,
-  image: null,
-}
-const form = reactive(createEmptyHeroSection())
+const form = reactive(createEmptyPortfolioContent())
+const contentScrollRef = ref(null)
+const formRef = ref(null)
 const {
   message: feedbackMessage,
   type: feedbackType,
@@ -46,117 +34,58 @@ const {
 } = useTimedNotice(5000)
 
 const activeSection = computed(() => maintenanceSections.find((section) => section.key === selectedSection.value) || maintenanceSections[0])
-const isHeroSection = computed(() => selectedSection.value === 'hero')
 
 const syncForm = (source) => {
-  const nextValue = cloneHeroSection(source)
-  form.jobTitle = nextValue.jobTitle
-  form.company = nextValue.company
-  form.description = nextValue.description
-  form.supportingText = nextValue.supportingText
-  form.heroButtons = nextValue.heroButtons.map((button) => ({ ...button }))
-  form.heroImages = nextValue.heroImages.map((image) => ({ ...image }))
+  Object.assign(form, clonePortfolioContent(source))
 }
 
-const clearMoveHighlightTimers = () => {
-  if (moveHighlightTimers.button !== null) {
-    window.clearTimeout(moveHighlightTimers.button)
-    moveHighlightTimers.button = null
-  }
+const scrollBodyToTop = () => {
+  const scrollElement = contentScrollRef.value
 
-  if (moveHighlightTimers.image !== null) {
-    window.clearTimeout(moveHighlightTimers.image)
-    moveHighlightTimers.image = null
-  }
-}
-
-const markMovedItem = (type, itemId) => {
-  if (!itemId) {
+  if (!scrollElement) {
     return
   }
 
-  if (moveHighlightTimers[type] !== null) {
-    window.clearTimeout(moveHighlightTimers[type])
-  }
-
-  if (type === 'button') {
-    movingHeroButtonId.value = itemId
-  } else {
-    movingHeroImageId.value = itemId
-  }
-
-  moveHighlightTimers[type] = window.setTimeout(() => {
-    if (type === 'button') {
-      movingHeroButtonId.value = ''
-    } else {
-      movingHeroImageId.value = ''
-    }
-
-    moveHighlightTimers[type] = null
-  }, 520)
+  scrollElement.scrollTop = 0
 }
 
-const selectSection = (sectionKey) => {
+const selectSection = async (sectionKey) => {
+  if (selectedSection.value === sectionKey) {
+    scrollBodyToTop()
+    return
+  }
+
   selectedSection.value = sectionKey
   clearFeedback()
+  await nextTick()
+  scrollBodyToTop()
 }
 
-const loadHeroSection = async () => {
+const loadPortfolioContent = async () => {
   loading.value = true
   clearFeedback()
 
   try {
-    const heroSection = await heroSectionStore.fetch(true)
-    syncForm(heroSection)
+    const portfolioContent = await portfolioContentStore.fetch(true)
+    syncForm(portfolioContent)
   } catch (error) {
-    showFeedback(error.message || 'Unable to load hero section.', 'error')
+    showFeedback(error.message || 'Unable to load portfolio content.', 'error')
   } finally {
     loading.value = false
   }
 }
 
-const addHeroImage = () => {
-  form.heroImages = syncDisplayOrder([...form.heroImages, createHeroImageDraft()])
-}
-
-const removeHeroImage = (index) => {
-  if (form.heroImages.length === 1) {
-    showFeedback('At least one hero image is required.', 'warning')
-    return
-  }
-
-  form.heroImages.splice(index, 1)
-  form.heroImages = syncDisplayOrder(form.heroImages)
-}
-
-const moveHeroImage = (index, direction) => {
-  const movedId = reorderItems(form.heroImages, index, direction)
-  markMovedItem('image', movedId)
-}
-
-const addHeroButton = () => {
-  form.heroButtons = syncDisplayOrder([...form.heroButtons, createHeroButtonDraft()])
-}
-
-const removeHeroButton = (index) => {
-  form.heroButtons.splice(index, 1)
-  form.heroButtons = syncDisplayOrder(form.heroButtons)
-}
-
-const moveHeroButton = (index, direction) => {
-  const movedId = reorderItems(form.heroButtons, index, direction)
-  markMovedItem('button', movedId)
-}
-
-const handleHeroSave = async () => {
+const handleSave = async () => {
   saving.value = true
   clearFeedback()
 
   try {
-    const payload = cloneHeroSection(form)
-    const savedHeroSection = await heroSectionStore.save(payload, authStore.token)
-    syncForm(savedHeroSection)
-    showFeedback('Hero section saved successfully.', 'success')
+    const payload = clonePortfolioContent(form)
+    const savedPortfolioContent = await portfolioContentStore.save(payload, authStore.token)
+    syncForm(savedPortfolioContent)
+    await nextTick()
+    formRef.value?.collapseAllItems?.()
+    showFeedback('Portfolio content saved successfully.', 'success')
   } catch (error) {
     if (/unauthorized/i.test(error.message)) {
       await authStore.logout()
@@ -164,19 +93,10 @@ const handleHeroSave = async () => {
       return
     }
 
-    showFeedback(error.message || 'Unable to save hero section.', 'error')
+    showFeedback(error.message || 'Unable to save portfolio content.', 'error')
   } finally {
     saving.value = false
   }
-}
-
-const handleSave = async () => {
-  if (isHeroSection.value) {
-    await handleHeroSave()
-    return
-  }
-
-  showFeedback(`${activeSection.value.title} is still in progress.`, 'info')
 }
 
 const openPasswordModal = () => {
@@ -232,12 +152,7 @@ const handleLogout = async () => {
   await router.replace({ name: 'login' })
 }
 
-onMounted(loadHeroSection)
-
-onBeforeUnmount(() => {
-  clearFeedback()
-  clearMoveHighlightTimers()
-})
+onMounted(loadPortfolioContent)
 </script>
 
 <template>
@@ -251,36 +166,36 @@ onBeforeUnmount(() => {
         @logout="handleLogout"
       />
 
-      <section class="maintenance-main">
-        <MaintenanceToolbar :title="activeSection.title" :saving="saving" :disabled="loading" @save="handleSave" />
+      <section class="maintenance-main content-card app-surface">
+        <div ref="contentScrollRef" class="content-card-scroll">
+          <div class="content-card-header">
+            <MaintenanceToolbar
+              :title="activeSection.title"
+              :saving="saving"
+              :disabled="loading"
+              @save="handleSave"
+            />
+          </div>
 
-        <MaintenanceFeedbackBanner
-          v-if="feedbackMessage"
-          :message="feedbackMessage"
-          :type="feedbackType"
-          :meta="feedbackMeta"
-        />
-
-        <section class="content-card app-surface">
-          <div class="content-card-scroll">
-            <HeroSectionForm
-              v-if="isHeroSection"
+          <div class="content-card-body">
+            <PortfolioContentForm
+              ref="formRef"
+              :key="selectedSection"
               :form="form"
               :disabled="loading || saving"
-              :moving-hero-button-id="movingHeroButtonId"
-              :moving-hero-image-id="movingHeroImageId"
-              @add-hero-button="addHeroButton"
-              @remove-hero-button="removeHeroButton"
-              @move-hero-button="moveHeroButton"
-              @add-hero-image="addHeroImage"
-              @remove-hero-image="removeHeroImage"
-              @move-hero-image="moveHeroImage"
+              :section-key="selectedSection"
             />
-            <SectionInProgress v-else :title="activeSection.title" />
           </div>
-        </section>
+        </div>
       </section>
     </div>
+
+    <MaintenanceFeedbackBanner
+      v-if="feedbackMessage"
+      :message="feedbackMessage"
+      :type="feedbackType"
+      :meta="feedbackMeta"
+    />
 
     <PasswordResetModal
       :open="isPasswordModalOpen"
@@ -314,25 +229,33 @@ onBeforeUnmount(() => {
 }
 
 .maintenance-main {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 0.95rem;
   min-width: 0;
-  height: calc(100vh - 2rem);
-}
-
-.content-card {
   min-height: 0;
-  height: 100%;
+  height: calc(100vh - 2rem);
   overflow: hidden;
   border-radius: 1.8rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
 .content-card-scroll {
   height: 100%;
   overflow-y: auto;
-  padding: 1.15rem;
 }
+
+.content-card-header {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  padding: 1.15rem 1.55rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 52%, #4338ca 100%);
+  border-bottom: 1px solid rgba(191, 219, 254, 0.24);
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.24);
+}
+
+.content-card-body {
+  padding: 1.25rem;
+}
+
 
 @media (max-width: 1280px) {
   .maintenance-shell {
@@ -360,13 +283,15 @@ onBeforeUnmount(() => {
     height: auto;
   }
 
-  .content-card,
   .content-card-scroll {
     height: auto;
+    overflow: visible;
   }
 
-  .content-card-scroll {
-    overflow: visible;
+  .content-card-header {
+    position: static;
+    padding: 1rem 1.15rem;
+    box-shadow: none;
   }
 }
 
@@ -377,12 +302,16 @@ onBeforeUnmount(() => {
     padding-bottom: 0.75rem;
   }
 
-  .content-card {
+  .maintenance-main {
     border-radius: 1.35rem;
   }
 
-  .content-card-scroll {
-    padding: 1rem;
+  .content-card-header {
+    padding: 0.95rem 1rem;
+  }
+
+  .content-card-body {
+    padding: 0.9rem;
   }
 }
 </style>

@@ -1,75 +1,13 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import josonPerey from '@/assets/images/projects/joson-perey.png'
-import privarase from '@/assets/images/projects/privarase.png'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { usePortfolioContentStore } from '@/stores/portfolioContent'
+import { getProjectStatusTags, shouldOpenInNewTab } from '@/utils/portfolioContent'
 
-const unavailableAlertMessage = 'The website is currently unavailable. It will be deployed as soon as possible.'
-
+const portfolioContentStore = usePortfolioContentStore()
 const isModalOpen = ref(false)
 const activeProject = ref(null)
 
-const projects = [
-  {
-    title: 'Joson-Perey Clinic',
-    subtitle: 'My Academic Capstone Project - Appointment System',
-    image: josonPerey,
-    imageAlt: 'Joson-Perey Clinic',
-    summary:
-      'Joson-Perey Dental Clinic is an appointment scheduling platform developed as our academic capstone project to make dental bookings more convenient for patients and easier to manage for clinic staff.',
-    details:
-      'The system was designed to improve the overall appointment workflow by giving patients a simple way to book, review, and manage their appointments online. For the clinic team, it provides an admin dashboard for organizing schedules, monitoring patient information, and keeping daily operations more streamlined. SMS reminder support was also integrated to help reduce missed appointments and improve communication.',
-    coreFeatures: [
-      'Online appointment booking for patients',
-      'Schedule viewing and appointment management',
-      'Admin dashboard for monitoring schedules and patient information',
-      'Streamlined workflow for handling daily clinic appointments',
-      'SMS/Email reminder support for appointment updates',
-    ],
-    tags: [
-      { label: 'SPA', status: 'live' },
-      { label: 'API', status: 'down' },
-    ],
-    actions: [
-      {
-        label: 'Open Client Website',
-        url: 'https://joson-perey.domtarang.com/',
-        variant: 'primary',
-      },
-      {
-        label: 'Open Admin Portal',
-        url: 'https://joson-perey.domtarang.com/admin',
-        variant: 'secondary',
-      },
-    ],
-  },
-  {
-    title: 'Privarase',
-    subtitle: 'My Internship Project - Cybersecurity and Data Privacy Platform',
-    image: privarase,
-    imageAlt: 'Privarase',
-    summary:
-      'Privarase is a cybersecurity and data privacy platform created during my internship to make online safety more practical, approachable, and easier for everyday users to understand.',
-    details:
-      'The platform brings together educational content that helps readers explore topics like account protection, social media safety, privacy tools, and current cybersecurity concerns without overwhelming technical language. Its structure was built to keep learning organized and engaging through articles, guides, categorized resources, newsletter content, and video-based materials.',
-    coreFeatures: [
-      'Educational articles, guides, and security tips',
-      'Resources focused on privacy, account safety, and social media protection',
-      'Categorized content for easier topic discovery',
-      'Newsletter content and awareness-driven updates',
-      'Video guides that make cybersecurity learning more engaging',
-    ],
-    tags: [
-      { label: 'Production', status: 'live' },
-    ],
-    actions: [
-      {
-        label: 'Open Website',
-        url: 'https://www.privarase.com/',
-        variant: 'primary',
-      },
-    ],
-  },
-]
+const projects = computed(() => portfolioContentStore.projectItems)
 
 const openModal = (project = null) => {
   activeProject.value = project
@@ -79,10 +17,6 @@ const openModal = (project = null) => {
 const closeModal = () => {
   isModalOpen.value = false
   activeProject.value = null
-}
-
-const handleUnavailable = () => {
-  window.alert(unavailableAlertMessage)
 }
 
 const handleKeydown = (event) => {
@@ -190,19 +124,15 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="projects-container">
-        <div
-          v-for="project in projects"
-          :key="project.title"
-          class="project-card"
-        >
-          <img :src="project.image" :alt="project.imageAlt" />
-          <p class="project-title">{{ project.title }}</p>
-          <p class="project-subtitle">{{ project.subtitle }}</p>
+        <div v-for="project in projects" :key="project.id || project.projectName" class="project-card">
+          <img :src="project.photo" :alt="project.projectName" />
+          <p class="project-title">{{ project.projectName }}</p>
+          <p class="project-subtitle">{{ project.shortDescription }}</p>
 
-          <div v-if="project.tags?.length" class="project-tags" aria-label="Project status tags">
+          <div v-if="getProjectStatusTags(project).length" class="project-tags" aria-label="Project status tags">
             <span
-              v-for="tag in project.tags"
-              :key="`${project.title}-${tag.label}`"
+              v-for="tag in getProjectStatusTags(project)"
+              :key="`${project.id}-${tag.label}-${tag.status}`"
               class="project-tag"
               :class="`project-tag--${tag.status}`"
             >
@@ -211,27 +141,26 @@ onBeforeUnmount(() => {
             </span>
           </div>
 
-          <div v-if="project.actions?.length" class="project-actions">
+          <div class="project-actions">
             <a
-              v-for="action in project.actions"
-              :key="`${project.title}-${action.label}`"
-              class="project-link"
-              :class="[
-                'project-action-btn',
-                action.variant === 'secondary' ? 'project-action-btn--secondary' : 'project-action-btn--primary',
-              ]"
-              :href="action.url"
-              target="_blank"
-              rel="noopener noreferrer"
+              class="project-link project-action-btn project-action-btn--primary"
+              :href="project.primaryButton.link"
+              :target="shouldOpenInNewTab(project.primaryButton.link) ? '_blank' : undefined"
+              :rel="shouldOpenInNewTab(project.primaryButton.link) ? 'noopener noreferrer' : undefined"
             >
-              {{ action.label }}
+              {{ project.primaryButton.label }}
+            </a>
+
+            <a
+              v-if="project.secondaryButtonEnabled"
+              class="project-link project-action-btn project-action-btn--secondary"
+              :href="project.secondaryButton.link"
+              :target="shouldOpenInNewTab(project.secondaryButton.link) ? '_blank' : undefined"
+              :rel="shouldOpenInNewTab(project.secondaryButton.link) ? 'noopener noreferrer' : undefined"
+            >
+              {{ project.secondaryButton.label }}
             </a>
           </div>
-          <template v-else>
-            <button class="project-action-btn project-action-btn--primary unavailable-btn" type="button" @click="handleUnavailable">
-              Open Website
-            </button>
-          </template>
 
           <button class="learn-more-btn" type="button" @click="openModal(project)">Learn More</button>
         </div>
@@ -252,29 +181,14 @@ onBeforeUnmount(() => {
 
       <div class="modal-hero">
         <p class="modal-kicker">Project Overview</p>
-        <h3 id="modal-title" class="modal-title">{{ activeProject?.title }}</h3>
-        <p class="modal-subtitle">{{ activeProject?.subtitle }}</p>
+        <h3 id="modal-title" class="modal-title">{{ activeProject?.projectName }}</h3>
+        <p class="modal-subtitle">{{ activeProject?.shortDescription }}</p>
       </div>
 
       <div class="modal-body">
         <div class="modal-description-card">
           <p class="modal-section-label">Project Summary</p>
-          <p id="modal-description" class="modal-summary">{{ activeProject?.summary }}</p>
-          <p v-if="activeProject?.details" class="modal-summary modal-summary--secondary">
-            {{ activeProject?.details }}
-          </p>
-        </div>
-
-        <div v-if="activeProject?.coreFeatures?.length" class="modal-feature-card">
-          <p class="modal-section-label">Core Features</p>
-          <ul class="modal-feature-list">
-            <li
-              v-for="feature in activeProject.coreFeatures"
-              :key="`${activeProject.title}-${feature}`"
-            >
-              {{ feature }}
-            </li>
-          </ul>
+          <p id="modal-description" class="modal-summary modal-summary--preline">{{ activeProject?.modalContent }}</p>
         </div>
       </div>
     </div>
@@ -671,6 +585,10 @@ onBeforeUnmount(() => {
   font-size: 0.98rem;
   line-height: 1.8;
   color: var(--text-muted);
+}
+
+.modal-summary--preline {
+  white-space: pre-line;
 }
 
 .modal-summary--secondary {
